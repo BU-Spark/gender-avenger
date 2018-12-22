@@ -38,9 +38,14 @@ for speaker in m:
 
 	if name != None:
 		name = name.text
+		name = " ".join(name.split())
 		name = name.split(" ")
-		first_names.append(name[0])
-		last_names.append(name[1])
+		if name[0] == "Dr.":
+			first_names.append(name[1])
+			last_names.append(name[2])
+		else:
+			first_names.append(name[0])
+			last_names.append(name[1])
 		# Guess gender
 		gguess = d.get_gender(name[0])
 		if gguess == "unknown":
