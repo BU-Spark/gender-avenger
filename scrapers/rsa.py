@@ -1,6 +1,7 @@
-# Filename: ces.py
+# Filename: rsa.py
 # Author: Dharmesh Tarapore <dharmesh@cs.bu.edu>
-# Description: Analyzes saved Speaker directory HTML page.
+# Description: Scrapes RSA conference site to analyze gender disparity.
+#              
 
 import pandas as pd 
 from bs4 import BeautifulSoup
@@ -10,9 +11,9 @@ d = gdetector.Detector()
 
 speakers = pd.DataFrame()
 
-# Set this to wherever you save the CES Speaker directory HTML page: 
-# https://www.ces.tech/Conference/Speaker-Directory.aspx
-fp = "/Users/dharmesh/cesspkdir.htm"
+# Set this to wherever you save the RSA Speaker directory HTML page: 
+# https://www.rsaconference.com/events/us19/speakers?showEnrolled=false
+fp = "/Users/dharmesh/rsaspkdir.htm"
 file = open(fp, "r")
 file = file.read()
 
@@ -31,17 +32,19 @@ companies = []
 genders = []
 
 phtml = BeautifulSoup(file, features='lxml')
-m = phtml.findAll('aside', attrs={'class': 'speaker-photo directory small'})
+m = phtml.findAll('div', attrs={'class': 'rfComp-speaker-results'})
+m = m[0]
+m = m.findAll('div', attrs={'class': 'list-group-item'})
+m = m[1:]
 
 for speaker in m:
-	name = speaker.find('h3', attrs={'class': 'speaker-name'})
-
+	name = speaker.find('div', attrs={'class': 'rf-list-item-one'})
 	if name != None:
 		name = name.text
+		name = " ".join(name.split())
 		name = name.split(" ")
 		first_names.append(name[0])
 		last_names.append(name[1])
-		# Guess gender
 		gguess = d.get_gender(name[0])
 		if gguess == "unknown":
 			gguess = d.get_gender(name[1])
@@ -50,19 +53,14 @@ for speaker in m:
 		first_names.append("Not found")
 		last_names.append("Not found")
 		genders.append("Not found")
-
-	company = speaker.find('h4', attrs={'class': 'speaker-company'})
-	title = speaker.find('h4', attrs={'class': 'speaker-title'})
-
+	company = speaker.find('div', attrs={'class': 'rf-list-item-three'})
+	title = speaker.find('div', attrs={'class': 'rf-list-item-two'})
 	if company != None:
-		companies.append(company.text)
-	else:
-		companies.append("Not found")
-
+		company = company.text
+		companies.append(company)
 	if title != None:
 		titles.append(title.text)
-	else:
-		titles.append("Not found")
+
 
 # Put this all in a Pandas DataFrame
 speakers['first_name'] = first_names
@@ -71,5 +69,4 @@ speakers['title'] = titles
 speakers['organization'] = companies
 speakers['gender'] = genders
 
-speakers.to_excel("../output/ces2019.xlsx")
-
+speakers.to_excel("../output/rsa2019.xlsx")
